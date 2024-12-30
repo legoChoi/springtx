@@ -20,9 +20,9 @@ class MemberServiceTest {
     LogRepository logRepository;
 
     /**
-     * memberService @Transactional OFF
+     * memberService    @Transactional OFF
      * memberRepository @Transactional ON
-     * logRepository @Transactional ON
+     * logRepository    @Transactional ON
      */
     @Test
     void outerTxOff_success() {
@@ -35,5 +35,26 @@ class MemberServiceTest {
         // then
         assertTrue(memberRepository.findByUsername(username).isPresent());
         assertTrue(logRepository.findByMessage(username).isPresent());
+    }
+
+    /**
+     * 회원은 저장O, 로그는 저장X 데이터 정합성 문제 발생 가능
+     * memberService    @Transactional OFF
+     * memberRepository @Transactional ON
+     * logRepository    @Transactional ON Exception
+     */
+    @Test
+    void outerTxOff_fail() {
+        // given
+        String username = "로그예외_outerTxOff_fail";
+
+        // when
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> memberService.joinV1(username))
+                        .isInstanceOf(RuntimeException.class);
+//        memberService.joinV1(username);
+
+        // then
+        assertTrue(memberRepository.findByUsername(username).isPresent());
+        assertTrue(logRepository.findByMessage(username).isEmpty());
     }
 }
