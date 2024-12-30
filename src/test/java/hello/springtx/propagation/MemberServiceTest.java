@@ -51,10 +51,27 @@ class MemberServiceTest {
         // when
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> memberService.joinV1(username))
                         .isInstanceOf(RuntimeException.class);
-//        memberService.joinV1(username);
 
         // then
         assertTrue(memberRepository.findByUsername(username).isPresent());
         assertTrue(logRepository.findByMessage(username).isEmpty());
+    }
+
+    /**
+     * memberService    @Transactional ON
+     * memberRepository @Transactional OFF
+     * logRepository    @Transactional OFF
+     */
+    @Test
+    void singleTx() {
+        // given
+        String username = "outerTxOff_success";
+
+        // when
+        memberService.joinV1(username);
+
+        // then
+        assertTrue(memberRepository.findByUsername(username).isPresent());
+        assertTrue(logRepository.findByMessage(username).isPresent());
     }
 }
