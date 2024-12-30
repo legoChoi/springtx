@@ -1,11 +1,11 @@
 package hello.springtx.propagation;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
@@ -49,10 +49,10 @@ class MemberServiceTest {
         String username = "로그예외_outerTxOff_fail";
 
         // when
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> memberService.joinV1(username))
+        assertThatThrownBy(() -> memberService.joinV1(username))
                         .isInstanceOf(RuntimeException.class);
 
-        // then
+        // then: 로그 데이터는 롤백됨
         assertTrue(memberRepository.findByUsername(username).isPresent());
         assertTrue(logRepository.findByMessage(username).isEmpty());
     }
@@ -91,5 +91,24 @@ class MemberServiceTest {
         // then
         assertTrue(memberRepository.findByUsername(username).isPresent());
         assertTrue(logRepository.findByMessage(username).isPresent());
+    }
+
+    /**
+     * memberService    @Transactional ON
+     * memberRepository @Transactional ON
+     * logRepository    @Transactional ON Exception
+     */
+    @Test
+    void outerTxOn_fail() {
+        // given
+        String username = "로그예외_outerTxOn_fail";
+
+        // when
+        assertThatThrownBy(() -> memberService.joinV1(username))
+                .isInstanceOf(RuntimeException.class);
+
+        // then: 모든 데이터가 롤백
+        assertTrue(memberRepository.findByUsername(username).isEmpty());
+        assertTrue(logRepository.findByMessage(username).isEmpty());
     }
 }
